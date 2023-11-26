@@ -111,4 +111,43 @@ class	IceDrive():
 				print("[INFO  ]: Disabled public-link for file/folder")
 				return "none"
 
-#
+# 2196093195
+class	IceDrivePublic():
+	url = "https://icedrive.net/API/Internal/V1/"
+	headers = { "Application": "application/json", "Content-Type": "application/json" }
+	response:object
+	content:ContentList = ContentList()
+	download_link = ""
+	filename = ""
+	file:str
+
+	def __init__(self, *arg, **kwargs):
+		pass
+
+	def error(self) -> bool:
+		if self.response.json()['error']:
+			print("[ERROR ]: ", self.response.json())
+			return True
+		return False
+
+	def get(self, params) -> bool:
+		self.response = scraper.get(self.url, params=params, headers=self.headers)
+		if not self.error():
+			return True
+		return False
+
+	def file_link(self, file_id):
+		params = {
+			"request": "download-multi",
+			"items": 'file-' + str(file_id),
+			"public": 1,
+		}
+		if self.get(params):
+			json = self.response.json()
+			self.download_link = json["urls"][0]["url"]
+			self.filename = json["urls"][0]["filename"]
+
+	def download(self):
+		self.file = scraper.get(self.download_link)
+		with open(self.filename, "w", encoding="utf-8") as f:
+			f.write(self.file.text)
